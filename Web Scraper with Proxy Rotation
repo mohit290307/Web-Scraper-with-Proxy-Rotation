@@ -1,0 +1,50 @@
+import requests
+from bs4 import BeautifulSoup
+import random
+import time
+
+# List of proxies (replace with working ones)
+proxies = [
+    "http://123.45.67.89:8080",
+    "http://98.76.54.32:3128",
+    "http://111.22.33.44:8000"
+]
+
+# List of user agents
+user_agents = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+    "Mozilla/5.0 (X11; Linux x86_64)"
+]
+
+def get_html(url):
+    # Pick one proxy for both http/https
+    proxy_choice = random.choice(proxies)
+    proxy = {"http": proxy_choice, "https": proxy_choice}
+    headers = {"User-Agent": random.choice(user_agents)}
+
+    try:
+        response = requests.get(url, headers=headers, proxies=proxy, timeout=10)
+        response.raise_for_status()
+        return response.text
+    except requests.exceptions.RequestException as e:
+        print(f"Proxy failed {proxy_choice}: {e}")
+        return None
+
+def scrape_site(url):
+    html = get_html(url)
+    if html:
+        soup = BeautifulSoup(html, "html.parser")
+        # Example: Extract all links
+        links = [a["href"] for a in soup.find_all("a", href=True)]
+        return links
+    return []
+
+# Example usage
+urls = ["https://example.com", "https://httpbin.org/ip"]
+
+for url in urls:
+    print(f"\nScraping: {url}")
+    links = scrape_site(url)
+    print("Found links:", links)
+    time.sleep(2)  # polite delay
